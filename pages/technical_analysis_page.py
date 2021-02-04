@@ -36,18 +36,7 @@ async def show_technical_analysis(q: Q):
         items=[]
     )
 
-    def make_markdown_row(values):
-        return f"| {' | '.join([str(x) for x in values])} |"
-
-    def make_markdown_table(fields, rows):
-        return '\n'.join([
-            make_markdown_row(fields),
-            make_markdown_row('---' * len(fields)),
-            '\n'.join([make_markdown_row(row) for row in rows]),
-        ])
-
     if q.args.calculate or q.args.file_upload:
-        print("Start calculation")
         upload_service = UploadService()
         df = await upload_service.upload(q)
 
@@ -58,15 +47,20 @@ async def show_technical_analysis(q: Q):
             df_table.show(records)
         ])
 
-        mfi = MoneyFlowIndex(df)
-        result_mfi_df = mfi.calculate()
-        await mfi.show_mpi(q, result_mfi_df)
-        await mfi.show_close_price_plot_with_signals(q, result_mfi_df)
+        await process_mfi(df, q)
 
     process_panel = q.page['process_panel']
     await __show_process_input_panel(process_panel, q)
 
     await q.page.save()
+
+
+async def process_mfi(df, q):
+    if 'MFI' in q.args.analysis_types:
+        mfi = MoneyFlowIndex(df)
+        result_mfi_df = mfi.calculate()
+        await mfi.show_mpi(q, result_mfi_df)
+        await mfi.show_close_price_plot_with_signals(q, result_mfi_df)
 
 
 async def __show_process_input_panel(process_panel, q):
