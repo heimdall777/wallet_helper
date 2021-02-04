@@ -1,6 +1,8 @@
-from h2o_wave import ui, Q
 from datetime import datetime
 
+from h2o_wave import ui, Q
+
+from analysis.mpi import MoneyFlowIndex
 from pages.commons.analysis_types import analysis_types
 from pages.commons.common import global_nav
 from pages.commons.input_types import input_types
@@ -56,20 +58,10 @@ async def show_technical_analysis(q: Q):
             df_table.show(records)
         ])
 
-        # q.page['data_table'] = ui.markdown_card(
-        #     box=ui.box(zone='content', size='25%', order=1),
-        #     title='',
-        #     content=make_markdown_table(
-        #             fields=df.columns.tolist(),
-        #             rows=df.values.tolist(),
-        #         ),
-        # )
-
-    # q.page['card_small'] = ui.small_stat_card(
-    #     box='content',
-    #     title='Test container',
-    #     value='18.9'
-    # )
+        mfi = MoneyFlowIndex(df)
+        result_mfi_df = mfi.calculate()
+        await mfi.show_mpi(q, result_mfi_df)
+        await mfi.show_close_price_plot_with_signals(q, result_mfi_df)
 
     process_panel = q.page['process_panel']
     await __show_process_input_panel(process_panel, q)
