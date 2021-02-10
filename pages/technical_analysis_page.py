@@ -3,6 +3,7 @@ from datetime import datetime
 from h2o_wave import ui, Q
 
 from analysis.mpi import MoneyFlowIndex
+from analysis.rsi import RelativeStrengthIndex
 from pages.commons.analysis_types import analysis_types
 from pages.commons.common import global_nav
 from pages.commons.input_types import input_types
@@ -48,6 +49,7 @@ async def show_technical_analysis(q: Q):
         ])
 
         await process_mfi(df, q)
+        await process_rsi(df, q)
 
     process_panel = q.page['process_panel']
     await __show_process_input_panel(process_panel, q)
@@ -61,6 +63,13 @@ async def process_mfi(df, q):
         result_mfi_df = mfi.calculate()
         await mfi.show_mpi(q, result_mfi_df)
         await mfi.show_close_price_plot_with_signals(q, result_mfi_df)
+
+
+async def process_rsi(df, q):
+    if 'RSI' in q.args.analysis_types:
+        rsi = RelativeStrengthIndex(df)
+        result_rsi_df = rsi.calculate()
+        await rsi.show_rsi(q, result_rsi_df)
 
 
 async def __show_process_input_panel(process_panel, q):
