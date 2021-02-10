@@ -7,11 +7,13 @@ from analysis.rsi import RelativeStrengthIndex
 from pages.commons.analysis_types import analysis_types
 from pages.commons.common import global_nav
 from pages.commons.input_types import input_types
+from services.stooq_service import StooqService
 from services.upload_service import UploadService
 from services.yahoo_service import YahooFianceService
 from utils.parser import parse_df_to_records
 from widgets.df_table import DataFrameTable
 import pandas as pd
+
 
 async def show_technical_analysis(q: Q):
     q.page['meta'] = ui.meta_card(box='', layouts=[
@@ -46,7 +48,8 @@ async def show_technical_analysis(q: Q):
             yf_service = YahooFianceService()
             df = yf_service.download(q)
         else:
-            df = pd.DataFrame()
+            stooq_service = StooqService()
+            df = stooq_service.download(q)
 
         records = await parse_df_to_records(df)
         df_table = DataFrameTable()

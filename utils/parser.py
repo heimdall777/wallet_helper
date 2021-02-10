@@ -5,7 +5,7 @@ async def parse_df_to_records(df):
     return [
         Record(
             record_id=index,
-            date=record[0],
+            date=str(record[0]),
             open_price=record[1],
             high_price=record[2],
             low_price=record[3],
