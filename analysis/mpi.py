@@ -1,5 +1,10 @@
+import os
+import uuid
+
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+from h2o_wave import ui
 
 
 class MoneyFlowIndex:
@@ -72,12 +77,15 @@ class MoneyFlowIndex:
 
         return posit_mf, negat_mf
 
-    def show_mpi(self, plt, st, data):
+    async def show_mpi(self, q, data):
         # Show the Money Flow Index
         mfi_df = pd.DataFrame(data, columns=['MFI'])
-        # mfi_df['MFI'] = mfi
 
-        fig = plt.figure(figsize=(12.2, 4.5))
+        q.page['mfi_plot'] = ui.markdown_card(box='content', title='Money FLow Index', content='')
+
+        # Render plot
+        plt.style.use('seaborn')
+        plt.figure(figsize=(13.2, 5))
         plt.plot(mfi_df.MFI, label='MFI')
         plt.axhline(10, linestyle='--', color='orange')
         plt.axhline(20, linestyle='--', color='blue')
@@ -85,11 +93,24 @@ class MoneyFlowIndex:
         plt.axhline(90, linestyle='--', color='orange')
         plt.title(f'MFI')
         plt.ylabel('MFI Values')
-        # plt.legend(mfi_df)
-        st.pyplot(fig)
+        image_filename = f'{str(uuid.uuid4())}.png'
+        plt.savefig(image_filename)
 
-    def show_close_price_plot_with_signals(self, plt, st, data):
-        fig2 = plt.figure(figsize=(12.2, 4.5))
+        # Upload
+        image_path, = await q.site.upload([image_filename])
+
+        # Clean up
+        os.remove(image_filename)
+
+        # Display our plot in our markdown card
+        q.page['mfi_plot'].content = f'![plot]({image_path})'
+
+    async def show_close_price_plot_with_signals(self, q, data):
+        q.page['close_price_plot'] = ui.markdown_card(box='content', title='Close Price', content='')
+
+        # Render plot
+        plt.style.use('seaborn')
+        plt.figure(figsize=(13.2, 5))
         plt.plot(data.Close, label='Close Price', alpha=0.5)
         plt.scatter(data.index, data.Buy, color='green', label='Buy Signal', marker='^', alpha=1)
         plt.scatter(data.index, data.Sell, color='red', label='Sell Signal', marker='v', alpha=1)
@@ -97,12 +118,14 @@ class MoneyFlowIndex:
         plt.xlabel('Date')
         plt.ylabel('Close Price')
         plt.legend(loc='upper left')
-        st.pyplot(fig2)
-        # st.write("""
-        # ## Closing Price
-        # """)
-        # st.line_chart(df.Close)
-        # st.write("""
-        # ## Volume Price
-        # """)
-        # st.line_chart(df.Volume)
+        image_filename = f'{str(uuid.uuid4())}.png'
+        plt.savefig(image_filename)
+
+        # Upload
+        image_path, = await q.site.upload([image_filename])
+
+        # Clean up
+        os.remove(image_filename)
+
+        # Display our plot in our markdown card
+        q.page['close_price_plot'].content = f'![plot]({image_path})'
