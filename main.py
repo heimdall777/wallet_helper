@@ -4,11 +4,14 @@ import streamlit as st
 import matplotlib.pyplot as plt
 
 from analysis.mpi import MoneyFlowIndex
+from analysis.rsi import RelativeStrengthIndex
 from pages.portfolio import PortfolioOptimization
 from pages.technical import TechnicalAnalysis
 
 # App configuration
-st.set_page_config(page_title="Finance App")
+from services.stooq_service import StooqService
+
+st.set_page_config(page_title="Finance App", )
 plt.style.use('seaborn')
 
 # App sidebar
@@ -33,7 +36,8 @@ show_page()
 
 st.sidebar.header('User panel')
 
-input_type = st.sidebar.radio("Select the data type", ('FILE', 'YAHOO API'))
+input_type = st.sidebar.radio("Select the data type", ('FILE', 'YAHOO API', 'Stooq API'))
+st.sidebar.multiselect('Analysis', ['MFI', 'RSI'])
 df = pd.DataFrame()
 
 if input_type == 'YAHOO API':
@@ -44,6 +48,14 @@ if input_type == 'YAHOO API':
         # Getting data from API
         tickerData = yf.Ticker(ticker_symbol)
         df = tickerData.history(start=str(start_date), end=str(end_date))
+        st.write(df)
+
+if input_type == 'Stooq API':
+    ticker_symbol = st.sidebar.text_input('Enter Ticker Symbol')
+    start_date = st.sidebar.date_input('Start date:')
+    end_date = st.sidebar.date_input('End date:')
+    df = StooqService.download(ticker_symbol, start_date, end_date)
+    if not df.empty:
         st.write(df)
 
 else:
@@ -60,3 +72,7 @@ if not df.empty:
     result_df = mpi.calculate()
     mpi.show_mpi(plt, st, result_df)
     mpi.show_close_price_plot_with_signals(plt, st, result_df)
+
+    rsi = RelativeStrengthIndex(df)
+    result_rsi_df = rsi.calculate()
+    rsi.show_rsi(plt, st, result_rsi_df)
